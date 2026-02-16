@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flaggen-Quiz (Deutsch) – Alle Länder</title>
+
+  <style>
+    :root{
+      --bg1:#0b1020;
+      --bg2:#121a33;
+      --card: rgba(255,255,255,.10);
+      --card2: rgba(255,255,255,.06);
+      --border: rgba(255,255,255,.14);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.70);
+      --shadow: 0 18px 60px rgba(0,0,0,.35);
+      --accent:#6ea8ff;
+      --accent2:#9b7bff;
+      --ok:#34d399;
+      --bad:#fb7185;
+      --btn:#e8eeff;
+      --btnText:#0f172a;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(110,168,255,.35), transparent 55%),
+        radial-gradient(900px 500px at 80% 20%, rgba(155,123,255,.28), transparent 50%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      min-height:100vh;
+    }
+
+    .wrap{ max-width: 920px; margin: 0 auto; padding: 22px; }
+    .card{
+      border-radius: 20px;
+      padding: 18px;
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .top{
+      display:flex;
+      justify-content:space-between;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    h1{ margin:0; font-size: 22px; letter-spacing: .2px; }
+    .muted{ color: var(--muted); font-size: 14px; }
+
+    .badge{
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 900;
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.14);
+    }
+
+    .controls{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items:center;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.25);
+      border: 1px solid rgba(255,255,255,.10);
+    }
+
+    .pill{
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .2px;
+    }
+
+    label.small{ font-size: 13px; color: var(--muted); display:flex; gap:8px; align-items:center; }
+
+    select{
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.25);
+      color: var(--text);
+      font-weight: 800;
+      outline: none;
+    }
+
+    .bar{
+      height: 10px;
+      background: rgba(255,255,255,.12);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width .25s;
+    }
+
+    .timerWrap{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .timerBadge{
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 900;
+      min-width: 108px;
+      text-align:center;
+    }
+    .timerBar{
+      height: 10px;
+      background: rgba(255,255,255,.12);
+      border-radius: 999px;
+      overflow:hidden;
+      flex: 1;
+      min-width: 220px;
+    }
+    .timerBar > div{
+      height:100%;
+      width:100%;
+      background: rgba(255,255,255,.85);
+      transition: width .18s;
+    }
+
+    #flagImg{
+      width: 100%;
+      max-height: 320px;
+      object-fit: contain;
+      border-radius: 16px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.10);
+      display:none;
+      margin-top: 14px;
+      padding: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+
+    #question{
+      margin: 14px 0 10px;
+      font-size: 18px;
+    }
+
+    /* Answers: always 2x2 grid */
+    #choices{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    button{
+      border:0;
+      cursor:pointer;
+      font-weight: 900;
+      border-radius: 14px;
+      padding: 14px 14px;
+      font-size: 16px;
+    }
+
+    button.primary{
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      color: #0b1020;
+      box-shadow: 0 12px 30px rgba(110,168,255,.20);
+    }
+
+    button.choice{
+      width: 100%;
+      min-height: 56px;
+      background: var(--btn);
+      color: var(--btnText);
+      text-align:left;
+      border: 1px solid rgba(15,23,42,.10);
+      box-shadow: 0 10px 20px rgba(0,0,0,.10);
+      display:flex;
+      align-items:center;
+      gap: 12px;
+    }
+    button.choice:hover{ transform: translateY(-1px); }
+    button:disabled{ opacity:.75; cursor:not-allowed; transform:none; }
+
+    .num{
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 1000;
+      background: rgba(0,0,0,.10);
+      color: #0b1020;
+      flex: 0 0 34px;
+    }
+
+    .feedback{
+      margin-top: 12px;
+      font-weight: 1000;
+      font-size: 15px;
+    }
+    .ok{ color: var(--ok); }
+    .bad{ color: var(--bad); }
+
+    .footer{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-top: 14px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .small{ font-size: 13px; color: var(--muted); }
+
+    .btnRow{ display:flex; gap: 10px; flex-wrap:wrap; }
+    #restartBtn{ background: rgba(0,0,0,.35); color: var(--text); border: 1px solid rgba(255,255,255,.14); }
+    #nextBtn{ background: rgba(255,255,255,.14); color: var(--text); border: 1px solid rgba(255,255,255,.14); }
+
+    /* Score History block */
+    .historyBox{
+      margin-top:14px;
+      padding:12px;
+      border-radius:14px;
+      background: rgba(0,0,0,.25);
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    .historyTop{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .historyTitle{ font-weight: 1000; }
+    .historyBtns{ display:flex; gap:10px; flex-wrap:wrap; }
+    .ghostBtn{
+      background: rgba(255,255,255,.14);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.14);
+    }
+    .dangerBtn{
+      background: rgba(0,0,0,.35);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.14);
+    }
+    #scoresList{
+      margin-top:10px;
+      color: rgba(255,255,255,.80);
+      font-size:13px;
+      line-height:1.6;
+    }
+
+    @media (max-width: 640px){
+      #choices{ grid-template-columns: 1fr; } /* on small screens, stack nicely */
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="top">
+        <h1>Flaggen-Quiz (Deutsch)</h1>
+        <div class="badge" id="scoreBadge">Punkte: 0 (Rekord: 0)</div>
+      </div>
+
+      <div class="muted" id="status">Lade Länder…</div>
+
+      <div class="controls">
+        <span class="pill">Einstellungen</span>
+
+        <label class="small">
+          Fragen:
+          <select id="questionsSelect">
+            <option value="10">10</option>
+            <option value="15" selected>15</option>
+            <option value="20">20</option>
+            <option value="30">30</option>
+          </select>
+        </label>
+
+        <label class="small">
+          Zeit pro Frage:
+          <select id="timeSelect">
+            <option value="6">6s (schwer)</option>
+            <option value="8">8s</option>
+            <option value="10" selected>10s</option>
+            <option value="12">12s (leicht)</option>
+          </select>
+        </label>
+
+        <span class="pill">Antworten: 4</span>
+        <span class="small">Tipp: Tastatur 1–4</span>
+      </div>
+
+      <div class="bar" aria-label="Fortschritt">
+        <div id="progress"></div>
+      </div>
+
+      <div class="timerWrap" aria-label="Timer">
+        <div class="timerBadge" id="timerText">Zeit: --</div>
+        <div class="timerBar" aria-label="Zeitbalken">
+          <div id="timerBarFill"></div>
+        </div>
+      </div>
+
+      <img id="flagImg" alt="Flagge" />
+
+      <h2 id="question"></h2>
+      <div id="choices"></div>
+      <div id="feedback" class="feedback" aria-live="polite"></div>
+
+      <!-- Score History -->
+      <div class="historyBox">
+        <div class="historyTop">
+          <div class="historyTitle">Scores</div>
+          <div class="historyBtns">
+            <button id="downloadScoresBtn" class="ghostBtn">Download scores</button>
+            <button id="clearScoresBtn" class="dangerBtn">Clear</button>
+          </div>
+        </div>
+        <div id="scoresList"></div>
+      </div>
+
+      <div class="footer">
+        <div class="small" id="meta"></div>
+        <div class="btnRow">
+          <button id="startBtn" class="primary" disabled>Start</button>
+          <button id="nextBtn" disabled>Weiter</button>
+          <button id="restartBtn" disabled>Neustart</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================
+    // DATA SOURCE (ALL FLAGS)
+    // =========================
+    const API_PRIMARY = "https://restcountries.com/v3.1/all?fields=name,translations,flags,cca2";
+    const API_FALLBACK = "https://restcountries.com/v3.1/all";
+
+    // =========================
+    // GAME SETTINGS
+    // =========================
+    const CHOICES_COUNT = 4; // 2 up + 2 down
+    const BASE_POINTS = 10;
+    const SPEED_BONUS_PER_SEC = 2;
+
+    // Saved data keys
+    const HIGH_SCORE_KEY = "flagQuizHighScore_allCountries_v2";
+    const SCORE_HISTORY_KEY = "flagQuizScoreHistory_v1";
+    const MAX_HISTORY = 30;
+
+    // =========================
+    // UI
+    // =========================
+    const statusEl = document.getElementById("status");
+    const questionEl = document.getElementById("question");
+    const choicesEl = document.getElementById("choices");
+    const feedbackEl = document.getElementById("feedback");
+    const scoreBadge = document.getElementById("scoreBadge");
+    const metaEl = document.getElementById("meta");
+    const progressEl = document.getElementById("progress");
+    const flagImgEl = document.getElementById("flagImg");
+
+    const timerTextEl = document.getElementById("timerText");
+    const timerBarFillEl = document.getElementById("timerBarFill");
+
+    const startBtn = document.getElementById("startBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const restartBtn = document.getElementById("restartBtn");
+
+    const questionsSelect = document.getElementById("questionsSelect");
+    const timeSelect = document.getElementById("timeSelect");
+
+    const downloadScoresBtn = document.getElementById("downloadScoresBtn");
+    const clearScoresBtn = document.getElementById("clearScoresBtn");
+
+    // =========================
+    // STATE
+    // =========================
+    let ALL = [];          // [{ nameDE, flagUrl }]
+    let questions = [];    // round questions
+    let current = 0;
+    let score = 0;
+    let answered = false;
+
+    // Timer
+    let timeLeft = 0;
+    let timerId = null;
+
+    // Keyboard enable per question
+    let keyHandlerEnabled = false;
+
+    // =========================
+    // HELPERS
+    // =========================
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function getSettings() {
+      return {
+        totalQuestions: Number(questionsSelect.value),
+        secondsPerQuestion: Number(timeSelect.value)
+      };
+    }
+
+    // =========================
+    // HIGH SCORE
+    // =========================
+    function getHighScore() {
+      const v = Number(localStorage.getItem(HIGH_SCORE_KEY));
+      return Number.isFinite(v) ? v : 0;
+    }
+    function setHighScore(v) {
+      localStorage.setItem(HIGH_SCORE_KEY, String(v));
+    }
+    function updateScoreBadge() {
+      scoreBadge.textContent = `Punkte: ${score} (Rekord: ${getHighScore()})`;
+    }
+
+    // =========================
+    // SCORE HISTORY (SAVE ALL SCORES)
+    // =========================
+    function getScoreHistory() {
+      try {
+        const raw = localStorage.getItem(SCORE_HISTORY_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        return Array.isArray(arr) ? arr : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveScoreHistory(entry) {
+      const history = getScoreHistory();
+      history.unshift(entry);      // newest first
+      history.splice(MAX_HISTORY); // keep only last MAX_HISTORY
+      localStorage.setItem(SCORE_HISTORY_KEY, JSON.stringify(history));
+    }
+
+    function formatDate(iso) {
+      const d = new Date(iso);
+      return d.toLocaleString("de-DE");
+    }
+
+    function renderScoreHistory() {
+      const el = document.getElementById("scoresList");
+      if (!el) return;
+
+      const history = getScoreHistory();
+      if (!history.length) {
+        el.textContent = "Noch keine Scores. Spiele eine Runde, um zu speichern.";
+        return;
+      }
+
+      el.innerHTML = history.map((h, i) =>
+        `${i + 1}. <b>${h.score}</b> Punkte — ${h.totalQuestions} Fragen — ${h.secondsPerQuestion}s — ${formatDate(h.dateISO)}`
+      ).join("<br>");
+    }
+
+    function downloadScoreHistoryFile() {
+      const history = getScoreHistory();
+      const blob = new Blob([JSON.stringify(history, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "flag-quiz-scores.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearScoreHistory() {
+      localStorage.removeItem(SCORE_HISTORY_KEY);
+      renderScoreHistory();
+    }
+
+    // =========================
+    // TIMER
+    // =========================
+    function setTimerUI(secondsPerQuestion) {
+      timerTextEl.textContent = `Zeit: ${timeLeft}s`;
+      const pct = Math.max(0, Math.min(100, (timeLeft / secondsPerQuestion) * 100));
+      timerBarFillEl.style.width = pct + "%";
+      timerBarFillEl.style.opacity = (timeLeft <= 3) ? "0.55" : "1";
+    }
+
+    function stopTimer() {
+      if (timerId !== null) {
+        clearInterval(timerId);
+        timerId = null;
+      }
+    }
+
+    function startTimer(secondsPerQuestion) {
+      stopTimer();
+      timeLeft = secondsPerQuestion;
+      setTimerUI(secondsPerQuestion);
+
+      timerId = setInterval(() => {
+        timeLeft -= 1;
+        setTimerUI(secondsPerQuestion);
+        if (timeLeft <= 0) {
+          timeLeft = 0;
+          setTimerUI(secondsPerQuestion);
+          stopTimer();
+          timeUp();
+        }
+      }, 1000);
+    }
+
+    // =========================
+    // COUNTRIES / QUESTIONS
+    // =========================
+    function normalizeCountries(data) {
+      const out = [];
+      for (const c of data) {
+        const nameEN = c?.name?.common || "";
+        const nameDE =
+          c?.translations?.deu?.common ||
+          c?.translations?.deu?.official ||
+          nameEN;
+
+        const flagUrl = c?.flags?.png || c?.flags?.svg || "";
+        if (!nameDE || !flagUrl) continue;
+
+        out.push({ nameDE, flagUrl });
+      }
+
+      // Deduplicate
+      const seen = new Set();
+      const deduped = [];
+      for (const item of out) {
+        const key = item.nameDE + "||" + item.flagUrl;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        deduped.push(item);
+      }
+      return deduped;
+    }
+
+    function pickWrongNames(correctName, count) {
+      const pool = ALL.map(c => c.nameDE).filter(n => n && n !== correctName);
+      shuffle(pool);
+      return pool.slice(0, count);
+    }
+
+    function buildRound() {
+      const { totalQuestions } = getSettings();
+      const indices = shuffle([...Array(ALL.length).keys()]);
+      const chosen = indices.slice(0, Math.min(totalQuestions, ALL.length));
+
+      questions = chosen.map(idx => {
+        const correct = ALL[idx];
+        const wrongs = pickWrongNames(correct.nameDE, CHOICES_COUNT - 1);
+        const choices = shuffle([correct.nameDE, ...wrongs]);
+        return {
+          prompt: "Welche Flagge ist das?",
+          flagUrl: correct.flagUrl,
+          correctName: correct.nameDE,
+          choices
+        };
+      });
+    }
+
+    // =========================
+    // GAME FLOW
+    // =========================
+    function setButtonsEnabled(ready) {
+      startBtn.disabled = !ready;
+      restartBtn.disabled = !ready;
+    }
+
+    function resetGameUI() {
+      current = 0;
+      score = 0;
+      answered = false;
+
+      statusEl.textContent = "Klicke auf „Start“, um zu beginnen.";
+      questionEl.textContent = "";
+      choicesEl.innerHTML = "";
+      feedbackEl.textContent = "";
+      feedbackEl.className = "feedback";
+
+      flagImgEl.style.display = "none";
+      flagImgEl.removeAttribute("src");
+
+      progressEl.style.width = "0%";
+      nextBtn.disabled = true;
+
+      stopTimer();
+      timerTextEl.textContent = "Zeit: --";
+      timerBarFillEl.style.width = "100%";
+      timerBarFillEl.style.opacity = "1";
+
+      metaEl.textContent = "";
+      updateScoreBadge();
+      keyHandlerEnabled = false;
+
+      renderScoreHistory();
+    }
+
+    function startGame() {
+      buildRound();
+      resetGameUI();
+      statusEl.textContent = "Viel Erfolg!";
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const { secondsPerQuestion } = getSettings();
+
+      answered = false;
+      nextBtn.disabled = true;
+      feedbackEl.textContent = "";
+      feedbackEl.className = "feedback";
+      choicesEl.innerHTML = "";
+
+      const q = questions[current];
+
+      const pct = Math.round((current / questions.length) * 100);
+      progressEl.style.width = pct + "%";
+      metaEl.textContent = `Frage ${current + 1} / ${questions.length}`;
+
+      questionEl.textContent = q.prompt;
+
+      flagImgEl.style.display = "block";
+      flagImgEl.src = q.flagUrl;
+      flagImgEl.onerror = () => {
+        feedbackEl.textContent = "Flagge konnte nicht geladen werden (Netzwerk/Quelle).";
+        feedbackEl.className = "feedback bad";
+      };
+
+      q.choices.forEach((name, i) => {
+        const btn = document.createElement("button");
+        btn.className = "choice";
+
+        const num = document.createElement("div");
+        num.className = "num";
+        num.textContent = String(i + 1);
+
+        const label = document.createElement("div");
+        label.textContent = name;
+
+        btn.appendChild(num);
+        btn.appendChild(label);
+
+        btn.addEventListener("click", () => chooseAnswer(i));
+        choicesEl.appendChild(btn);
+      });
+
+      startTimer(secondsPerQuestion);
+      setTimerUI(secondsPerQuestion);
+      updateScoreBadge();
+      keyHandlerEnabled = true;
+    }
+
+    function lockChoices() {
+      const buttons = [...choicesEl.querySelectorAll("button.choice")];
+      buttons.forEach(b => b.disabled = true);
+      return buttons;
+    }
+
+    function highlightResult(correctIndex, chosenIndex) {
+      const buttons = [...choicesEl.querySelectorAll("button.choice")];
+
+      // Correct
+      if (buttons[correctIndex]) {
+        buttons[correctIndex].style.outline = "3px solid rgba(52,211,153,.9)";
+        buttons[correctIndex].style.background = "rgba(52,211,153,.18)";
+        buttons[correctIndex].style.borderColor = "rgba(52,211,153,.45)";
+      }
+
+      // Wrong choice
+      if (chosenIndex !== null && chosenIndex !== correctIndex && buttons[chosenIndex]) {
+        buttons[chosenIndex].style.outline = "3px solid rgba(251,113,133,.9)";
+        buttons[chosenIndex].style.background = "rgba(251,113,133,.16)";
+        buttons[chosenIndex].style.borderColor = "rgba(251,113,133,.45)";
+      }
+    }
+
+    function timeUp() {
+      if (answered) return;
+      answered = true;
+      keyHandlerEnabled = false;
+
+      const q = questions[current];
+      const correctIndex = q.choices.indexOf(q.correctName);
+
+      lockChoices();
+      highlightResult(correctIndex, null);
+
+      feedbackEl.textContent = `Zeit abgelaufen! Richtige Antwort: ${q.correctName}`;
+      feedbackEl.classList.add("bad");
+      nextBtn.disabled = false;
+    }
+
+    function chooseAnswer(choiceIndex) {
+      if (answered) return;
+      answered = true;
+      keyHandlerEnabled = false;
+
+      stopTimer();
+
+      const q = questions[current];
+      const correctIndex = q.choices.indexOf(q.correctName);
+      const chosenName = q.choices[choiceIndex];
+      const isCorrect = (chosenName === q.correctName);
+
+      lockChoices();
+      highlightResult(correctIndex, choiceIndex);
+
+      if (isCorrect) {
+        const speedBonus = Math.max(0, timeLeft) * SPEED_BONUS_PER_SEC;
+        const gained = BASE_POINTS + speedBonus;
+        score += gained;
+
+        feedbackEl.textContent = `Richtig! +${gained} (Tempo-Bonus +${speedBonus})`;
+        feedbackEl.classList.add("ok");
+      } else {
+        feedbackEl.textContent = `Falsch! Richtige Antwort: ${q.correctName}`;
+        feedbackEl.classList.add("bad");
+      }
+
+      updateScoreBadge();
+      nextBtn.disabled = false;
+    }
+
+    function nextQuestion() {
+      if (!answered) return;
+      current += 1;
+
+      if (current >= questions.length) {
+        finishGame();
+        return;
+      }
+      renderQuestion();
+    }
+
+    function finishGame() {
+      stopTimer();
+      keyHandlerEnabled = false;
+      progressEl.style.width = "100%";
+
+      // Save high score
+      const prevHigh = getHighScore();
+      if (score > prevHigh) setHighScore(score);
+
+      // Save score history (ALL SCORES)
+      const s = getSettings();
+      saveScoreHistory({
+        dateISO: new Date().toISOString(),
+        score,
+        totalQuestions: s.totalQuestions,
+        secondsPerQuestion: s.secondsPerQuestion
+      });
+      renderScoreHistory();
+
+      questionEl.textContent = "Spiel beendet!";
+      choicesEl.innerHTML = "";
+      flagImgEl.style.display = "none";
+      flagImgEl.removeAttribute("src");
+
+      feedbackEl.className = "feedback";
+      feedbackEl.textContent = `Endpunktzahl: ${score}. Rekord: ${getHighScore()}.`;
+
+      statusEl.textContent = "Drücke „Neustart“, um nochmal zu spielen.";
+      metaEl.textContent = "";
+
+      updateScoreBadge();
+      nextBtn.disabled = true;
+    }
+
+    // =========================
+    // KEYBOARD 1–4 and Enter
+    // =========================
+    window.addEventListener("keydown", (e) => {
+      if (!keyHandlerEnabled) {
+        if (e.key === "Enter" && !nextBtn.disabled) nextQuestion();
+        return;
+      }
+      if (e.key === "1" || e.key === "2" || e.key === "3" || e.key === "4") {
+        chooseAnswer(Number(e.key) - 1);
+      }
+      if (e.key === "Enter" && !nextBtn.disabled) nextQuestion();
+    });
+
+    // =========================
+    // LOAD COUNTRIES
+    // =========================
+    async function loadCountries() {
+      statusEl.textContent = "Lade Länder…";
+      setButtonsEnabled(false);
+
+      try {
+        let res = await fetch(API_PRIMARY);
+        if (!res.ok) throw new Error("Primary fetch failed: " + res.status);
+        let data = await res.json();
+        ALL = normalizeCountries(data);
+        if (!ALL.length) throw new Error("No countries parsed (primary).");
+      } catch (e1) {
+        try {
+          const res2 = await fetch(API_FALLBACK);
+          if (!res2.ok) throw new Error("Fallback fetch failed: " + res2.status);
+          const data2 = await res2.json();
+          ALL = normalizeCountries(data2);
+        } catch (e2) {
+          statusEl.textContent = "Fehler beim Laden der Länder. Prüfe Internet / Quelle.";
+          console.error(e1, e2);
+          return;
+        }
+      }
+
+      statusEl.textContent = `Bereit! Geladene Länder: ${ALL.length}.`;
+      setButtonsEnabled(true);
+      resetGameUI();
+    }
+
+    // =========================
+    // EVENTS
+    // =========================
+    startBtn.addEventListener("click", startGame);
+    nextBtn.addEventListener("click", nextQuestion);
+    restartBtn.addEventListener("click", startGame);
+
+    [questionsSelect, timeSelect].forEach(el => {
+      el.addEventListener("change", () => resetGameUI());
+    });
+
+    downloadScoresBtn.addEventListener("click", downloadScoreHistoryFile);
+    clearScoresBtn.addEventListener("click", clearScoreHistory);
+
+    // Init
+    updateScoreBadge();
+    renderScoreHistory();
+    loadCountries();
+  </script>
+</body>
+</html>
