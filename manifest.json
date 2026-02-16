@@ -1,6 +1,7 @@
 {
   "name": "Flag Quiz",
   "short_name": "FlagQuiz",
+  "description": "A German flag quiz game with timer and score tracking. Test your geography knowledge!",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#0b1020",
