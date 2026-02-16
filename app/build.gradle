@@ -1,0 +1,206 @@
+/*
+ * Copyright 2019 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import groovy.xml.MarkupBuilder
+
+plugins {
+    id 'com.android.application'
+}
+
+/**
+ * ✅ Signing (NEW)
+ * Reads signing info from keystore.properties so the release AAB is signed.
+ *
+ * Create a file: android/keystore.properties (next to settings.gradle / gradlew)
+ * with:
+ *   storeFile=C:\\Users\\Dell\\Desktop\\Quiz game\\quiz-game\\android.keystore
+ *   storePassword=YOUR_STORE_PASSWORD
+ *   keyAlias=android
+ *   keyPassword=YOUR_KEY_PASSWORD
+ */
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+def twaManifest = [
+    applicationId: 'io.github.asdreen.twa',
+    hostName: 'asdreen.github.io', // The domain being opened in the TWA.
+    launchUrl: '/quiz-game/', // The start path for the TWA. Must be relative to the domain.
+    name: 'Flag Quiz', // The application name.
+    launcherName: 'FlagQuiz', // The name shown on the Android Launcher.
+    themeColor: '#0B1020', // The color used for the status bar.
+    themeColorDark: '#000000', // The color used for the dark status bar.
+    navigationColor: '#000000', // The color used for the navigation bar.
+    navigationColorDark: '#000000', // The color used for the dark navbar.
+    navigationDividerColor: '#000000', // The navbar divider color.
+    navigationDividerColorDark: '#000000', // The dark navbar divider color.
+    backgroundColor: '#0B1020', // The color used for the splash screen background.
+    enableNotifications: true, // Set to true to enable notification delegation.
+    shortcuts: [],
+    splashScreenFadeOutDuration: 300,
+    generatorApp: 'bubblewrap-cli',
+    fallbackType: 'customtabs',
+    enableSiteSettingsShortcut: 'true',
+    orientation: 'default',
+]
+
+android {
+    compileSdkVersion 36
+    namespace "io.github.asdreen.twa"
+
+    defaultConfig {
+        applicationId "io.github.asdreen.twa"
+        minSdkVersion 21
+        targetSdkVersion 35
+        versionCode 1
+        versionName "1"
+
+        // The name for the application
+        resValue "string", "appName", twaManifest.name
+
+        // The name for the application on the Android Launcher
+        resValue "string", "launcherName", twaManifest.launcherName
+
+        // The URL that will be used when launching the TWA from the Android Launcher
+        def launchUrl = "https://" + twaManifest.hostName + twaManifest.launchUrl
+        resValue "string", "launchUrl", launchUrl
+
+        // Web Manifest URL (for Chrome OS / Meta Quest, etc.)
+        resValue "string", "webManifestUrl", 'https://asdreen.github.io/quiz-game/manifest.json'
+
+        // Full scope URL (Meta Quest)
+        resValue "string", "fullScopeUrl", 'https://asdreen.github.io/quiz-game/'
+
+        // Hostname for intent-filter
+        resValue "string", "hostName", twaManifest.hostName
+
+        // Status bar colors
+        resValue "color", "colorPrimary", twaManifest.themeColor
+        resValue "color", "colorPrimaryDark", twaManifest.themeColorDark
+
+        // Navigation bar colors
+        resValue "color", "navigationColor", twaManifest.navigationColor
+        resValue "color", "navigationColorDark", twaManifest.navigationColorDark
+        resValue "color", "navigationDividerColor", twaManifest.navigationDividerColor
+        resValue "color", "navigationDividerColorDark", twaManifest.navigationDividerColorDark
+
+        // Splash background
+        resValue "color", "backgroundColor", twaManifest.backgroundColor
+
+        // FileProvider authority
+        resValue "string", "providerAuthority", twaManifest.applicationId + '.fileprovider'
+
+        // Notifications enable/disable
+        resValue "bool", "enableNotification", twaManifest.enableNotifications.toString()
+
+        twaManifest.shortcuts.eachWithIndex { shortcut, index ->
+            resValue "string", "shortcut_name_$index", "$shortcut.name"
+            resValue "string", "shortcut_short_name_$index", "$shortcut.short_name"
+        }
+
+        resValue "integer", "splashScreenFadeOutDuration", twaManifest.splashScreenFadeOutDuration.toString()
+        resValue "string", "generatorApp", twaManifest.generatorApp
+        resValue "string", "fallbackType", twaManifest.fallbackType
+        resValue "bool", "enableSiteSettingsShortcut", twaManifest.enableSiteSettingsShortcut
+        resValue "string", "orientation", twaManifest.orientation
+    }
+
+    /**
+     * ✅ Signing config (NEW)
+     */
+    signingConfigs {
+        release {
+            // Only configure if keystore.properties exists
+            if (keystorePropertiesFile.exists()) {
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+
+            // ✅ Apply signing to release builds (NEW)
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+    }
+}
+
+task generateShorcutsFile {
+    assert twaManifest.shortcuts.size() < 5, "You can have at most 4 shortcuts."
+    twaManifest.shortcuts.eachWithIndex { s, i ->
+        assert s.name != null, 'Missing `name` in shortcut #' + i
+        assert s.short_name != null, 'Missing `short_name` in shortcut #' + i
+        assert s.url != null, 'Missing `icon` in shortcut #' + i
+        assert s.icon != null, 'Missing `url` in shortcut #' + i
+    }
+
+    def shortcutsFile = new File("$projectDir/src/main/res/xml", "shortcuts.xml")
+
+    def xmlWriter = new StringWriter()
+    def xmlMarkup = new MarkupBuilder(new IndentPrinter(xmlWriter, "    ", true))
+
+    xmlMarkup
+        .'shortcuts'('xmlns:android': 'http://schemas.android.com/apk/res/android') {
+            twaManifest.shortcuts.eachWithIndex { s, i ->
+                'shortcut'(
+                    'android:shortcutId': 'shortcut' + i,
+                    'android:enabled': 'true',
+                    'android:icon': '@drawable/' + s.icon,
+                    'android:shortcutShortLabel': '@string/shortcut_short_name_' + i,
+                    'android:shortcutLongLabel': '@string/shortcut_name_' + i
+                ) {
+                    'intent'(
+                        'android:action': 'android.intent.action.MAIN',
+                        'android:targetPackage': twaManifest.applicationId,
+                        'android:targetClass': twaManifest.applicationId + '.LauncherActivity',
+                        'android:data': s.url
+                    )
+                    'categories'('android:name': 'android.intent.category.LAUNCHER')
+                }
+            }
+        }
+
+    shortcutsFile.text = xmlWriter.toString() + '\n'
+}
+
+preBuild.dependsOn(generateShorcutsFile)
+
+repositories {
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.google.androidbrowserhelper:locationdelegation:1.1.2'
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.6.2'
+}
